@@ -69,7 +69,7 @@ start(Host) ->
     ok.
 %% ----------------------------
 %% plain_password_required
-%% 
+%%
 %% tells ejabbered if a plain text password is required with this auth module.
 plain_password_required() ->
     true.
@@ -113,7 +113,7 @@ set_password(User, Server, Password) ->
 	    CheckPass = sha:sha(Password),
 	    NewUser = {obj, [{"_id", list_to_binary(Jid)},
 			     get_obj_attr("_rev", UserObj),
-			     get_obj_attr("email", UserObj), 
+			     get_obj_attr("email", UserObj),
 			     {"password", CheckPass}
 			    ]},
 	    {ok,{obj,[{"ok",true},_,_]}} = ecouch:doc_update(?COUCHDB_DBNAME, Jid, NewUser),
@@ -131,16 +131,16 @@ set_password(User, Server, Password) ->
 %%
 %% @spec (User, Server, Password) -> {atomic, ok} | {atomic, exists} | {error, invalid_jid}
 try_register(User, Server, Password) ->
-    Jid = string:join([User, "@", Server], ""),
-    case get_user(Jid) of
-	{ok, _} ->
+  Jid = string:join([User, "@", Server], ""),
+  case get_user(Jid) of
+    {ok, _} ->
 	    {atomic, exists};
-	_ ->
+    _ ->
 	    CheckPass = sha:sha(Password),
 	    NewUser = {obj, [{"password", CheckPass}, {"email", null}]},
-	    {ok,{obj, [{"ok",true},_,_]}} = ecouch:doc_create(?COUCHDB_DBNAME, Jid, NewUser),
+	    {ok, {obj, [{"ok", true} ,_ ,_]}} = ecouch:doc_create(?COUCHDB_DBNAME, Jid, NewUser),
 	    {atomic, ok}
-    end.
+  end.
 %% -------------------------------------
 %% dirty_get_registered_users
 %% NOTE: not implemented
