@@ -51,7 +51,7 @@
 -include("ejabberd.hrl").
 
 -define(COUCHDB_DBNAME, "users").
-
+-define(MAX_RETRY, 2).
 
 %%%----------------------------------------------------------------------
 %%% API
@@ -259,15 +259,21 @@ remove_user(User, Server, Password) ->
 %% -------------------------
 %% get a user document from couchdb
 get_user(Jid) ->
-  case catch ecouch:doc_get(?COUCHDB_DBNAME, Jid) of
-    {ok, {obj, [{"error", _Error},{"reason",_Reason}]}} ->
-%% error is usually a not found
+    get_user(Jid, 0).
+get_user(Jid, Retry) when Retry > ?MAX_RETRY ->
+    null;
+get_user(Jid, Retry) ->
+    case catch ecouch:doc_get(?COUCHDB_DBNAME, Jid) of
+	{ok, {obj, [{"error", Error},{"reason", Reason}]}} ->
+	    %% error is usually a not found
+	    ?INFO_MSG("AUTH: returned error from couch ~p ~p ",[Error, Reason]),
 	    null;
     {ok, {obj, UserObj}} ->
 	    {ok, UserObj};
-    _ ->
-	    null
-  end.
+	Error ->
+	    ?INFO_MSG("AUTH: Error in connection to couch ~p",[Error]),
+	    get_user(Jid, Retry + 1)
+    end.
 %% -------------------------
 %% get a json object value using a key
 %%
